@@ -10,7 +10,7 @@ function REST_ROUTER(router,connection,md5) {
     self.handleRoutes(router,connection,md5);
 }
 
-REST_ROUTER.prototype.handleRoutes= function(router,connection,md5) {
+REST_ROUTER.prototype.handleRoutes = function(router, connection,md5) {
     router.get('/', function(req, res) {
         res.json({
             'Error': false,
@@ -80,7 +80,7 @@ REST_ROUTER.prototype.handleRoutes= function(router,connection,md5) {
         });
     });
 
-    router.put('/products', function(req, res) {
+    router.post('/products', function(req, res) {
         console.log('creating new product');
         function onFormParsed(res, name, img) {
             if(name) {
@@ -255,7 +255,7 @@ REST_ROUTER.prototype.handleRoutes= function(router,connection,md5) {
         });
     });
 
-    router.put('/products/:product_id/prices', function(req, res) {
+    router.post('/products/:product_id/prices', function(req, res) {
         if(req.busboy) {
             var price;
 
@@ -284,19 +284,22 @@ REST_ROUTER.prototype.handleRoutes= function(router,connection,md5) {
                     query = mysql.format(query, table);
                     connection.query(query, function(err, rows) {
                         if(err || !rows) {
-                            console.log('Error when inserting into DB', err);
+                            var errStr = 'Error when inserting into DB: ' + err;
+                            console.log(errStr);
+                            res.json({
+                                'Error': true,
+                                'Message': errStr
+                            })
                         } else {
-                            res.json(
-                                {
-                                    'Error': false,
-                                    'Message': 'OK',
-                                    'price': {
-                                        'id': rows.insertId,
-                                        'productId': req.params.product_id,
-                                        'price': price
-                                    }
+                            res.json({
+                                'Error': false,
+                                'Message': 'OK',
+                                'price': {
+                                    'id': rows.insertId,
+                                    'productId': req.params.product_id,
+                                    'price': price
                                 }
-                            );
+                            });
                         }
                     });
                 }
@@ -304,12 +307,10 @@ REST_ROUTER.prototype.handleRoutes= function(router,connection,md5) {
 
             req.pipe(req.busboy);
         } else {
-            res.json(
-                {
-                    'Error': true,
-                    'Message': 'Could not parse form data'
-                }
-            );
+            res.json({
+                'Error': true,
+                'Message': 'Could not parse form data'
+            });
         }
     });
 }

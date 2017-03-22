@@ -1,15 +1,22 @@
-var express = require("express");
-var mysql   = require("mysql");
-var bodyParser  = require("body-parser");
-var busboy = require("connect-busboy");
-var md5 = require('MD5');
-var rest = require("./REST.js");
+'use strict';
+
+var express = require('express');
+var mysql   = require('mysql');
+var bodyParser  = require('body-parser');
+var busboy = require('connect-busboy');
 var app  = express();
+
+var routers = {
+    products: require('./routers/products.router.js'),
+    prices: require('./routers/prices.router.js')
+};
 
 function REST(){
     var self = this;
     self.connectMysql();
 };
+
+REST.prototype.port = 3000;
 
 REST.prototype.connectMysql = function() {
     var self = this;
@@ -24,32 +31,36 @@ REST.prototype.connectMysql = function() {
     });
     pool.getConnection(function(err,connection){
         if(err) {
-          self.stop(err);
+            self.stop(err);
         } else {
-          self.configureExpress(connection);
+            self.configureExpress(connection);
         }
     });
 }
 
 REST.prototype.configureExpress = function(connection) {
-      var self = this;
-      app.use(bodyParser.urlencoded({ extended: true }));
-      app.use(bodyParser.json());
-      app.use(busboy());
-      var router = express.Router();
-      app.use('/api', router);
-      var rest_router = new rest(router,connection,md5);
-      self.startServer();
+    var self = this;
+    app.use(bodyParser.urlencoded({ extended: true }));
+    app.use(bodyParser.json());
+    app.use(busboy());
+    var router = express.Router();
+    app.use('/api', router);
+
+    var productsRouter = new routers.products.ProductsRouter(router, connection);
+    var pricesRouter = new routers.prices.PricesRouter(router, connection);
+    
+    self.startServer();
 }
 
 REST.prototype.startServer = function() {
-      app.listen(3000,function(){
-          console.log("All right ! I am alive at Port 3000.");
-      });
+    var self = this;
+    app.listen(self.port, function(){
+        console.log('MenuBoard API - Port ' + self.port);
+    });
 }
 
 REST.prototype.stop = function(err) {
-    console.log("ISSUE WITH MYSQL n" + err);
+    console.log('ISSUE WITH MYSQL n' + err);
     process.exit(1);
 }
 
