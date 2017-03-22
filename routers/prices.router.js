@@ -144,6 +144,79 @@ module.exports.PricesRouter = class PricesRouter extends abstractRouter.Abstract
         });
 
 
+        self.router.put('/products/:product_id/prices/:price_id', function(req, res) {
+            console.log('Updating price id ' + req.params.price_id + ' for product id ' + req.params.product_id);
+
+            self.getPriceById(req.params.price_id).then(
+                function(rows) {
+                    if(!rows || rows.length == 0) {
+                        self.handleError(res, 'Product id ' + req.params.product_id + ' does not exist');
+                    } else {
+                        if(req.busboy) {
+                            let row = rows[0];
+                            let price = row.price;
+                            let startTime = row.startTime;
+                            let endTime = row.endTime;
+
+                            req.busboy.on(
+                                'field',
+                                function(fieldname, val, fieldnameTruncated, valTruncated) {
+                                    switch(fieldname) {
+                                        case 'price':
+                                            price = val;
+                                            break;
+
+                                        case 'startTime':
+                                            startTime = val;
+                                            break;
+
+                                        case 'endTime':
+                                            endTime = val;
+                                            break;
+                                    }
+                                }
+                            );
+
+                            req.busboy.on(
+                                'finish',
+                                function() {
+                                    self.query(
+                                        'UPDATE ?? SET ??=?, ??=?, ??=? WHERE ??=?',
+                                        [
+                                            'prices',
+                                            'price',
+                                            price,
+                                            'startTime',
+                                            startTime,
+                                            'endTime',
+                                            endTime,
+                                            'id',
+                                            req.params.price_id
+                                        ]
+                                        ).then(
+                                            function(rows) {
+                                                self.handleResponse(res, rows);
+                                            },
+                                            function(err) {
+                                                self.handleError(res, err);
+                                            }
+                                        );
+                                }
+                            );
+
+                            req.pipe(req.busboy);
+                        } else {
+                            self.handleError(res, 'Could not parse form data');
+                        }
+                    }
+                },
+                function(err) {
+                    self.handleError(res, err);
+                }
+            );
+        });
+
+
         self.router.delete('/products/:product_id/prices', function(req, res) {
             console.log('deleting all prices for product id: ' + req.params.product_id);
             self.getProductById(req.params.product_id).then(
@@ -211,6 +284,17 @@ module.exports.PricesRouter = class PricesRouter extends abstractRouter.Abstract
             'SELECT * FROM ?? WHERE ??=?',
             [
                 'products',
+                'id',
+                id
+            ]
+        );
+    }
+
+    getPriceById(id) {
+        return this.query(
+            'SELECT * FROM ?? WHERE ??=?',
+            [
+                'prices',
                 'id',
                 id
             ]
