@@ -39,6 +39,43 @@ module.exports.PricesRouter = class PricesRouter extends abstractRouter.Abstract
         });
 
 
+        self.router.get('/products/:product_id/currentprice', function(req, res) {
+            console.log('Fetching prices for product id: ' + req.params.product_id);
+            self.getProductById(req.params.product_id).then(
+                function(rows) {
+                    if(!rows || rows.length == 0) {
+                        self.handleError(res, 'Product id ' + req.params.product_id + ' does not exist');
+                    } else {
+                        var nowStamp = Math.floor((new Date()).getTime() / 1000);
+                        console.log(nowStamp);
+                        self.query(
+                            'SELECT * FROM ?? WHERE ??=? AND ??>=? AND ??<?',
+                            [
+                                'prices',
+                                'productId',
+                                req.params.product_id,
+                                'startTime',
+                                nowStamp,
+                                'endTime',
+                                nowStamp
+                            ]
+                            ).then(
+                                function(rows) {
+                                    self.handleResponse(res, rows);
+                                },
+                                function(err) {
+                                    self.handleError(res, err);
+                                }
+                            );
+                    }
+                },
+                function(err) {
+                    self.handleError(res, err);
+                }
+            );
+        });
+
+
         self.router.get('/products/:product_id/prices/:price_id', function(req, res) {
             console.log('Fetching price id ' + req.params.price_id + ' for product id: ' + req.params.product_id);
             self.getProductById(req.params.product_id).then(
@@ -103,7 +140,7 @@ module.exports.PricesRouter = class PricesRouter extends abstractRouter.Abstract
                             req.busboy.on(
                                 'finish',
                                 function() {
-                                    if(price) {
+                                    if(price && startTime && endTime && startTime < endTime) {
                                         self.query(
                                             'INSERT INTO ??(??,??,??,??) VALUES (?,?,?,?)',
                                             [
@@ -180,28 +217,31 @@ module.exports.PricesRouter = class PricesRouter extends abstractRouter.Abstract
                             req.busboy.on(
                                 'finish',
                                 function() {
-                                    self.query(
-                                        'UPDATE ?? SET ??=?, ??=?, ??=? WHERE ??=?',
-                                        [
-                                            'prices',
-                                            'price',
-                                            price,
-                                            'startTime',
-                                            startTime,
-                                            'endTime',
-                                            endTime,
-                                            'id',
-                                            req.params.price_id
-                                        ]
-                                        ).then(
-                                            function(rows) {
-                                                self.handleResponse(res, rows);
-                                            },
-                                            function(err) {
-                                                self.handleError(res, err);
-                                            }
-                                        );
-                                }
+                                    if(price && startTime && endTime && startTime < endTime) {
+                                        self.query(
+                                            'UPDATE ?? SET ??=?, ??=?, ??=? WHERE ??=?',
+                                            [
+                                                'prices',
+                                                'price',
+                                                price,
+                                                'startTime',
+                                                startTime,
+                                                'endTime',
+                                                endTime,
+                                                'id',
+                                                req.params.price_id
+                                            ]
+                                            ).then(
+                                                function(rows) {
+                                                    self.handleResponse(res, rows);
+                                                },
+                                                function(err) {
+                                                    self.handleError(res, err);
+                                                }
+                                            );
+                                    } else {
+                                        self.handleError(res, 'Bad parameters');
+                                    }
                             );
 
                             req.pipe(req.busboy);
