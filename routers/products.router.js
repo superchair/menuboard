@@ -18,8 +18,36 @@ module.exports.ProductsRouter = class ProductsRouter extends abstractRouter.Abst
                 ]
             ).then(
                 function(rows) {
-                    self.updateOrdering();
-                    self.handleResponse(res, rows);
+                    var nowStamp = Math.floor((new Date()).getTime() / 1000);
+                    var promises = [];
+                    var retObj = [];
+                    rows.forEach(function(product, index) {
+                        promises.push(self.query(
+                            'SELECT * FROM ?? WHERE ??=? AND ??<=? AND ??>?',
+                            [
+                                'prices',
+                                'productId',
+                                product.id,
+                                'startTime',
+                                nowStamp,
+                                'endTime',
+                                nowStamp
+                            ]
+                            ).then(
+                                function(priceRows) {
+                                    product['prices'] = priceRows;
+                                    retObj.push(product);
+                                },
+                                function(err) {
+                                    product['prices'] = [];
+                                    retObj.push(product);
+                                }
+                            ));
+                    });
+
+                    Promise.all(promises).then(function() {
+                        self.handleResponse(res, retObj);
+                    });
                 },
                 function(err) {
                     self.handleError(res, err);
