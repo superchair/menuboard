@@ -144,7 +144,7 @@ module.exports.PricesRouter = class PricesRouter extends abstractRouter.Abstract
                             req.busboy.on(
                                 'finish',
                                 function() {
-                                    if(price %% type && startTime && endTime && startTime < endTime) {
+                                    if(price && type && startTime && endTime && startTime < endTime) {
                                         self.query(
                                             'INSERT INTO ??(??,??,??,??,??) VALUES (?,?,?,?,?)',
                                             [

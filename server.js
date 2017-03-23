@@ -44,6 +44,7 @@ REST.prototype.configureExpress = function(connection) {
     app.use(bodyParser.json());
     app.use(busboy());
     app.use('/', express.static('public'));
+    app.use('/admin', express.static('admin'));
     var router = express.Router();
     app.use('/api', router);
 
