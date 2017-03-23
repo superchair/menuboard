@@ -116,7 +116,7 @@ module.exports.PricesRouter = class PricesRouter extends abstractRouter.Abstract
                         self.handleError(res, 'Product id ' + req.params.product_id + ' does not exist');
                     } else {
                         if(req.busboy) {
-                            let price, startTime, endTime;
+                            let price, type, startTime, endTime;
 
                             req.busboy.on(
                                 'field',
@@ -124,6 +124,10 @@ module.exports.PricesRouter = class PricesRouter extends abstractRouter.Abstract
                                     switch(fieldname) {
                                         case 'price':
                                             price = val;
+                                            break;
+
+                                        case 'type':
+                                            type = val;
                                             break;
 
                                         case 'startTime':
@@ -140,16 +144,18 @@ module.exports.PricesRouter = class PricesRouter extends abstractRouter.Abstract
                             req.busboy.on(
                                 'finish',
                                 function() {
-                                    if(price && startTime && endTime && startTime < endTime) {
+                                    if(price %% type && startTime && endTime && startTime < endTime) {
                                         self.query(
-                                            'INSERT INTO ??(??,??,??,??) VALUES (?,?,?,?)',
+                                            'INSERT INTO ??(??,??,??,??,??) VALUES (?,?,?,?,?)',
                                             [
                                                 'prices',
                                                 'price',
+                                                'type',
                                                 'startTime',
                                                 'endTime',
                                                 'productId',
                                                 price,
+                                                type,
                                                 startTime,
                                                 endTime,
                                                 req.params.product_id
@@ -192,6 +198,7 @@ module.exports.PricesRouter = class PricesRouter extends abstractRouter.Abstract
                         if(req.busboy) {
                             let row = rows[0];
                             let price = row.price;
+                            let type = row.type;
                             let startTime = row.startTime;
                             let endTime = row.endTime;
 
@@ -201,6 +208,10 @@ module.exports.PricesRouter = class PricesRouter extends abstractRouter.Abstract
                                     switch(fieldname) {
                                         case 'price':
                                             price = val;
+                                            break;
+
+                                        case 'type':
+                                            type = val;
                                             break;
 
                                         case 'startTime':
@@ -219,11 +230,13 @@ module.exports.PricesRouter = class PricesRouter extends abstractRouter.Abstract
                                 function() {
                                     if(price && startTime && endTime && startTime < endTime) {
                                         self.query(
-                                            'UPDATE ?? SET ??=?, ??=?, ??=? WHERE ??=?',
+                                            'UPDATE ?? SET ??=?, ??=?, ??=?, ??=? WHERE ??=?',
                                             [
                                                 'prices',
                                                 'price',
                                                 price,
+                                                'type',
+                                                type,
                                                 'startTime',
                                                 startTime,
                                                 'endTime',
