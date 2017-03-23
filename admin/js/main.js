@@ -25,7 +25,8 @@
 
         var editBtn = $('<div />', {
             class:'btn btn-default',
-            type:'button',
+            type:'button'
+        }).attr({
             'data-toggle':'modal',
             'data-target':'editProduct'
         });
@@ -34,10 +35,13 @@
         editBtn.append(' Edit');
 
         var deleteBtn = $('<div />', {
+        }).attr({
             class:'btn btn-danger',
             type:'button',
             'data-toggle':'modal',
-            'data-target':'confirmDelete'
+            'data-target':'#confirmDelete',
+            'data-index':index,
+            'data-type':'product'
         });
         var deleteBtnInner = $('<span />', {class:'glyphicon glyphicon-remove','aria-hidden':true});
         deleteBtn.append(deleteBtnInner);
@@ -97,8 +101,12 @@
                 var priceDeleteBtn = $('<div />', {
                     class:'btn btn-danger btn-xs',
                     type:'button',
+                }).attr({
                     'data-toggle':'modal',
-                    'data-target':'confirmDelete'
+                    'data-target':'#confirmDelete',
+                    'data-index': index,
+                    'data-priceid': price.id,
+                    'data-type':'price'
                 });
                 var priceDeleteBtnInner = $('<span />', {class:'glyphicon glyphicon-remove', 'aria-hidden':true});
                 priceDeleteBtn.append(priceDeleteBtnInner);
@@ -111,11 +119,23 @@
             }
         }
 
+        var addPriceCol = $('<div />', {class:'col-md-12 text-center'});
+        var priceAddBtn = $('<div />', {
+            class:'btn btn-primary',
+            type:'button',
+        }).attr({
+            'data-toggle':'modal',
+            'data-target':'#priceModal',
+        });
+        var priceAddBtnInner = $('<span />', {class:'glyphicon glyphicon-plus', 'aria-hidden':true});
+        priceAddBtn.append(priceAddBtnInner, ' Add Price');
+        addPriceCol.append(priceAddBtn);
+
         buttonGrp1.append(editBtn, deleteBtn);
         buttonGrp2.append(upBtn, downBtn);
         buttonCol1.append(buttonGrp1);
         buttonCol2.append(buttonGrp2);
-        bodyRow.append(buttonCol1, buttonCol2, tableCol);
+        bodyRow.append(buttonCol1, buttonCol2, tableCol, addPriceCol);
         bodyCol.append(bodyRow);
         imgCol.append(img);
         mainRow.append(imgCol, bodyCol);
@@ -126,7 +146,7 @@
     }
 
     function update() {
-        //$('#products').empty();
+        $('#products').empty();
         $('#empty').show();
 
         $.ajax({
@@ -135,10 +155,16 @@
             function(res) {
                 if(res && res.data && res.data.length != 0) {
 
+                    products = res.data ? res.data : [];
+
                     for(var i = 0; i < res.data.length; i++) {
                         var product = res.data[i];
                         var productDiv = buildProductDom(i, product);
                         $('#products').append(productDiv);
+                    }
+
+                    if(products.length > 0) {
+                        $('#empty').hide();
                     }
                 }
             },
@@ -148,7 +174,56 @@
         );
     }
 
-    //setInterval(update, 10000);
-    update();
+    $(document).ready(function() {
+        $('#confirmDelete').on('show.bs.modal', function(event) {
+            var button = $(event.relatedTarget);
+            var modal = $(this);
 
+            var type = button.data('type');
+            if(type == 'product') {
+                modal.find('.modal-body #text').text('Are you sure you want to delete product?');
+                modal.find('.modal-body #confirm').on('click', function() {
+                    var index = button.data('index');
+                    var product = products[index];
+                    modal.modal('hide');
+                    $.ajax({
+                        url: '/api/products/' + product.id,
+                        type: 'DELETE'
+                    }).then(
+                        function(res) {
+                            console.log(res);
+                            update();
+                        },
+                        function(err) {
+                            console.log(err);
+                        }
+                    );
+                });
+            } else {
+                // price
+                modal.find('.modal-body #text').text('Are you sure you want to delete price?');
+                modal.find('.modal-body #confirm').on('click', function() {
+                    var index = button.data('index');
+                    var product = products[index];
+                    var priceId = button.data('priceid');
+                    modal.modal('hide');
+                    $.ajax({
+                        url: '/api/products/' + product.id + '/prices/' + priceId,
+                        type: 'DELETE'
+                    }).then(
+                        function(res) {
+                            console.log(res);
+                            update();
+                        },
+                        function(err) {
+                            console.log(err);
+                        }
+                    );
+                });
+            }
+        });
+
+        //setInterval(update, 10000);
+        update();
+    });
 })();

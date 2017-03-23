@@ -14,6 +14,16 @@
 	<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 	<link href="css/ie10-viewport-bug-workaround.css" rel="stylesheet">
 
+	<!-- Bootstrap core JavaScript 
+	================================================== -->
+	<!-- Placed at the end of the document so the pages load faster -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/docs.min.js"></script>
+	<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+	<script src="js/ie10-viewport-bug-workaround.js"></script>
+	<script src="js/dateformat.js"></script>
+	<script src="js/main.js"></script>
 
         <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
         <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -33,6 +43,27 @@
         </div>
         </nav>
 
+        <div id="confirmDelete" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteModal">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div id="text"></div>
+                        <div class="text-right">
+                            <div class="btn-group">
+                                <button id="confirm" type="button" class="btn btn-danger">
+                                    <span class="glyphicon glyphicon-remove" aria-hiddin="true"></span> Delete
+                                </button>
+                                <button type="button" class="btn btn-default" data-dismiss="modal">
+                                    <span class="glyphicon glyphicon-ban-circle" aria-hiddin="true"></span> Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
         <div class="container theme-showcase" role="main" style="margin-top:100px; width:80%;">
 
             <div id="empty" class="alert alert-warning" role="alert">No Products Available</div>
@@ -42,104 +73,8 @@
             </button>
 
             <div id="products" class="container" style="width:100%">
-
-                <div class="panel panel-warning">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">TITLE</h3>
-                    </div>
-                    <div class="panel-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <img src="img/83.jpg" class="img-responsive center-block" />
-                            </div>
-                            <div class="col-md-8">
-                                <div class="row">
-                                    <div class="col-md-6 text-center">
-                                        <div class="btn-group">
-                                            <button type="button" class="btn btn-default">
-                                                <span class="glyphicon glyphicon-pencil" aria-hiddin="true"></span> Edit
-                                            </button>
-                                            <button type="button" class="btn btn-danger">
-                                                <span class="glyphicon glyphicon-remove" aria-hiddin="true"></span> Delete
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 text-center">
-                                        <div class="btn-group">
-                                            <button type="button" class="btn btn-primary">
-                                                <span class="glyphicon glyphicon-arrow-up" aria-hiddin="true"></span> Up
-                                            </button>
-                                            <button type="button" class="btn btn-primary">
-                                                <span class="glyphicon glyphicon-arrow-down" aria-hiddin="true"></span> Down
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <table class="table table-hover table-condensed">
-                                            <thead>
-                                                <th>Price</th>
-                                                <th>Type</th>
-                                                <th>Starts</th>
-                                                <th>Ends</th>
-                                                <th>Options</th>
-                                            </thead>
-                                            <tr>
-                                                <td>$4.99</td>
-                                                <td>Combo</td>
-                                                <td>March 1, 2016</td>
-                                                <td>March 10, 2016</td>
-                                                <td>
-                                                    <div class="btn-group">
-                                                        <button type="button" class="btn btn-default btn-xs">
-                                                            <span class="glyphicon glyphicon-pencil" aria-hiddin="true"></span>
-                                                        </button>
-                                                        <button type="button" class="btn btn-danger btn-xs">
-                                                            <span class="glyphicon glyphicon-remove" aria-hiddin="true"></span>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>$4.99</td>
-                                                <td>Combo</td>
-                                                <td>March 1, 2016</td>
-                                                <td>March 10, 2016</td>
-                                                <td>
-                                                    <div class="btn-group">
-                                                        <button type="button" class="btn btn-default btn-xs">
-                                                            <span class="glyphicon glyphicon-pencil" aria-hiddin="true"></span>
-                                                        </button>
-                                                        <button type="button" class="btn btn-danger btn-xs">
-                                                            <span class="glyphicon glyphicon-remove" aria-hiddin="true"></span>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <button type="button" class="btn btn-primary center-block">
-                                            <span class="glyphicon glyphicon-plus" aria-hiddin="true"></span> Add Price
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
 
-	<!-- Bootstrap core JavaScript 
-	================================================== -->
-	<!-- Placed at the end of the document so the pages load faster -->
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-	<script src="js/bootstrap.min.js"></script>
-	<script src="js/docs.min.js"></script>
-	<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-	<script src="js/ie10-viewport-bug-workaround.js"></script>
-	<script src="js/dateformat.js"></script>
-	<script src="js/main.js"></script>
     </body>
 </html>
