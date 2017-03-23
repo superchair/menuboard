@@ -242,6 +242,7 @@ module.exports.PricesRouter = class PricesRouter extends abstractRouter.Abstract
                                     } else {
                                         self.handleError(res, 'Bad parameters');
                                     }
+                                }
                             );
 
                             req.pipe(req.busboy);

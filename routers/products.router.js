@@ -11,12 +11,14 @@ module.exports.ProductsRouter = class ProductsRouter extends abstractRouter.Abst
         self.router.get('/products', function(req, res) {
             console.log('Fetching all products...');
             self.query(
-                'SELECT * FROM ??',
+                'SELECT * FROM ?? ORDER BY ?? ASC',
                 [
-                    'products'
+                    'products',
+                    'ordinal'
                 ]
             ).then(
                 function(rows) {
+                    self.updateOrdering();
                     self.handleResponse(res, rows);
                 },
                 function(err) {
@@ -30,15 +32,14 @@ module.exports.ProductsRouter = class ProductsRouter extends abstractRouter.Abst
             console.log('Creating product...');
 
             if(req.busboy) {
-                let name, imgPath, errStr;
+                let name, imgPath;
 
                 req.busboy.on(
                     'file',
                     function(fieldname, file, filename, encoding, mimetype) {
-                        console.log(fieldname);
                         if(fieldname == 'img') {
-                            self.writeFile(filename, file);
                             imgPath = filename;
+                            self.writeFile(filename, file);
                         }
                     }
                 );
@@ -55,9 +56,7 @@ module.exports.ProductsRouter = class ProductsRouter extends abstractRouter.Abst
                 req.busboy.on(
                     'finish',
                     function() {
-                        if(errStr) {
-                            self.handleError(res, errStr);
-                        } else if(name && imgPath) {
+                        if(name && imgPath) {
                             self.query(
                                 'INSERT INTO ??(??,??) VALUES (?,?)',
                                 [
@@ -69,7 +68,14 @@ module.exports.ProductsRouter = class ProductsRouter extends abstractRouter.Abst
                                 ]
                                 ).then(
                                     function(rows) {
-                                        self.handleResponse(res, rows);
+                                        self.updateOrdering().then(
+                                            function() {
+                                                self.handleResponse(res, rows);
+                                            },
+                                            function() {
+                                                self.handleResponse(res, rows);
+                                            }
+                                        );
                                     },
                                     function(err) {
                                         self.handleError(res, err);
@@ -128,7 +134,7 @@ module.exports.ProductsRouter = class ProductsRouter extends abstractRouter.Abst
                             let row = rows[0];
 
                             if(req.busboy) {
-                                let nName, nFile, nFilename;
+                                let nName, nFile, nFilename, nOrdinal;
 
                                 req.busboy.on(
                                     'file',
@@ -144,8 +150,14 @@ module.exports.ProductsRouter = class ProductsRouter extends abstractRouter.Abst
                                 req.busboy.on(
                                     'field',
                                     function(fieldname, val, fieldnameTruncated, valTruncated) {
-                                        if(fieldname == 'name') {
-                                            nName = val;
+                                        switch(fieldname) {
+                                            case 'name':
+                                                nName = val;
+                                                break;
+
+                                            case 'ordinal':
+                                                nOrdinal = val;
+                                                break;
                                         }
                                     }
                                 );
@@ -155,23 +167,33 @@ module.exports.ProductsRouter = class ProductsRouter extends abstractRouter.Abst
                                     function() {
                                         let name = nName ? nName : row.name;
                                         let imgPath = nFilename ? nFilename : row.img;
+                                        let ordinal = nOrdinal ? nOrdinal : row.ordinal;
                                         if(imgPath !== row.img) {
                                             self.writeFile(nfilename, nFile);
                                         }
                                         self.query(
-                                            'UPDATE ?? SET ??=?, ??=? WHERE ??=?',
+                                            'UPDATE ?? SET ??=?, ??=?, ??=? WHERE ??=?',
                                             [
                                                 'products',
                                                 'name',
                                                 name,
                                                 'img',
                                                 imgPath,
+                                                'ordinal',
+                                                ordinal,
                                                 'id',
                                                 req.params.product_id
                                             ]
                                             ).then(
                                                 function(rows) {
-                                                    self.handleResponse(res, rows);
+                                                    self.updateOrdering().then(
+                                                        function() {
+                                                            self.handleResponse(res, rows);
+                                                        },
+                                                        function() {
+                                                            self.handleResponse(res, rows);
+                                                        }
+                                                    );
                                                 },
                                                 function(err) {
                                                     self.handleError(res, err);
@@ -220,7 +242,14 @@ module.exports.ProductsRouter = class ProductsRouter extends abstractRouter.Abst
                                     self.handleError(res, 'Error performing query');
                                 } else {
                                     console.log(rows);
-                                    self.handleResponse(res, rows);
+                                    self.updateOrdering().then(
+                                        function() {
+                                            self.handleResponse(res, rows);
+                                        },
+                                        function() {
+                                            self.handleResponse(res, rows);
+                                        }
+                                    );
                                 }
                             },
                             function(err) {
@@ -234,5 +263,41 @@ module.exports.ProductsRouter = class ProductsRouter extends abstractRouter.Abst
                 }
             );
         });
+    }
+
+    updateOrdering() {
+        console.log('Updating product order...');
+        let query1 = 'SET @ordinal_inc=10';
+        let query2 = 'SET @new_ordinal=0';
+        let query3 = 'UPDATE products SET ordinal=(@new_ordinal := @new_ordinal + @ordinal_inc) ORDER BY ordinal ASC';
+        let self = this;
+
+        return new Promise(
+            (resolve, reject) => {
+                self.connection.query(query1, function(err, rows) {
+                    if(err) {
+                        console.log(err);
+                        reject()
+                    } else {
+                        self.connection.query(query2, function(err, rows) {
+                            if(err) {
+                                console.log(err);
+                                reject();
+                            } else {
+                                self.connection.query(query3, function(err, rows) {
+                                    if(err) {
+                                        console.log(err);
+                                        reject()
+                                    } else {
+                                        console.log('Updating product order complete!');
+                                        resolve();
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        );
     }
 }

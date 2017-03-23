@@ -50,6 +50,8 @@ module.exports.AbstractRouter = class AbstractRouter {
         var saveTo = path.join(self.imgPath, path.basename(filename));
         if(!fs.existsSync(saveTo)) {
             file.pipe(fs.createWriteStream(saveTo));
+        } else {
+            file.resume();
         }
     }
 }
