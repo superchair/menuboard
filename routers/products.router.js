@@ -16,43 +16,54 @@ module.exports.ProductsRouter = class ProductsRouter extends abstractRouter.Abst
                     'products',
                     'ordinal'
                 ]
-            ).then(
-                function(rows) {
-                    var nowStamp = Math.floor((new Date()).getTime() / 1000);
-                    var promises = [];
-                    var retObj = [];
-                    rows.forEach(function(product, index) {
-                        promises.push(self.query(
-                            'SELECT * FROM ?? WHERE ??=? AND ??<=? AND ??>?',
-                            [
-                                'prices',
-                                'productId',
-                                product.id,
-                                'startTime',
-                                nowStamp,
-                                'endTime',
-                                nowStamp
-                            ]
-                            ).then(
+                ).then(
+                    function(rows) {
+                        var promises = [];
+                        var retObj = [];
+                        rows.forEach(function(product, index) {
+                            var queryStr, table;
+                            if(req.query.fullList) {
+                                queryStr = 'SELECT * FROM ?? WHERE ??=?';
+                                table = [
+                                    'prices',
+                                    'productId',
+                                    product.id,
+                                ];
+                            } else {
+                                var nowStamp = Math.floor((new Date()).getTime() / 1000);
+                                queryStr = 'SELECT * FROM ?? WHERE ??=? AND ??<=? AND ??>?';
+                                table = [
+                                    'prices',
+                                    'productId',
+                                    product.id,
+                                    'startTime',
+                                    nowStamp,
+                                    'endTime',
+                                    nowStamp
+                                ];
+                            }
+                            promises.push(self.query(queryStr, table).then(
                                 function(priceRows) {
-                                    product['prices'] = priceRows;
-                                    retObj.push(product);
+                                    if(req.query.fullList || (priceRows && priceRows.length > 0)) {
+                                        product['prices'] = priceRows;
+                                        retObj.push(product);
+                                    }
                                 },
                                 function(err) {
                                     product['prices'] = [];
                                     retObj.push(product);
-                                }
-                            ));
-                    });
+                                }));
+                        }
+                    );
 
                     Promise.all(promises).then(function() {
                         self.handleResponse(res, retObj);
                     });
-                },
-                function(err) {
-                    self.handleError(res, err);
-                }
-            );
+                    },
+                    function(err) {
+                        self.handleError(res, err);
+                    }
+                );
         });
 
 
