@@ -76,6 +76,7 @@ module.exports.ProductsRouter = class ProductsRouter extends abstractRouter.Abst
                 req.busboy.on(
                     'file',
                     function(fieldname, file, filename, encoding, mimetype) {
+                        console.log('onfile', fieldname, filename);
                         if(fieldname == 'img') {
                             imgPath = filename;
                             self.writeFile(filename, file);
@@ -86,6 +87,7 @@ module.exports.ProductsRouter = class ProductsRouter extends abstractRouter.Abst
                 req.busboy.on(
                     'field',
                     function(fieldname, val, fieldnameTruncated, valTruncated) {
+                        console.log('onfield', fieldname, val);
                         if(fieldname == 'name') {
                             name = val;
                         }
@@ -178,10 +180,16 @@ module.exports.ProductsRouter = class ProductsRouter extends abstractRouter.Abst
                                 req.busboy.on(
                                     'file',
                                     function(fieldname, file, filename, encoding, mimetype) {
-                                        console.log(fieldname);
+                                        console.log('onfile', fieldname, filename);
                                         if(fieldname == 'img') {
                                             nFile = file;
                                             nFilename = filename;
+
+                                            if(nFilename ? nFilename : row.img !== row.img) {
+                                                self.writeFile(nFilename, nFile);
+                                            } else {
+                                                file.resume();
+                                            }
                                         }
                                     }
                                 );
@@ -189,6 +197,7 @@ module.exports.ProductsRouter = class ProductsRouter extends abstractRouter.Abst
                                 req.busboy.on(
                                     'field',
                                     function(fieldname, val, fieldnameTruncated, valTruncated) {
+                                        console.log('onfield', fieldname, val);
                                         switch(fieldname) {
                                             case 'name':
                                                 nName = val;
@@ -207,9 +216,7 @@ module.exports.ProductsRouter = class ProductsRouter extends abstractRouter.Abst
                                         let name = nName ? nName : row.name;
                                         let imgPath = nFilename ? nFilename : row.img;
                                         let ordinal = nOrdinal ? nOrdinal : row.ordinal;
-                                        if(imgPath !== row.img) {
-                                            self.writeFile(nfilename, nFile);
-                                        }
+                                        console.log(imgPath);
                                         self.query(
                                             'UPDATE ?? SET ??=?, ??=?, ??=? WHERE ??=?',
                                             [

@@ -27,8 +27,9 @@
             class:'btn btn-default',
             type:'button'
         }).attr({
+            'data-index': index,
             'data-toggle':'modal',
-            'data-target':'editProduct'
+            'data-target':'#productModal'
         });
         var editBtnInner = $('<span />', {class:'glyphicon glyphicon-pencil', 'aria-hidden':true});
         editBtn.append(editBtnInner);
@@ -49,7 +50,31 @@
 
         var upBtn = $('<div />', {
             class:'btn btn-primary',
-            type:'button'
+            type:'button',
+            'data-index':index
+        });
+        upBtn.on('click', function() {
+            var product = products[$(this).data('index')];
+            var form = $('<form />');
+            var input = $('<input />', {'type':'hidden', 'name':'ordinal', 'value':product.ordinal - 15});
+            form.append(input);
+            var data = new FormData(form[0]);
+            $.ajax({
+                url: '/api/products/' + product.id,
+                type: 'PUT',
+                enctype: 'multipart/form-data',
+                data: data,
+                processData: false,
+                contentType: false
+            }).then(
+                function(res) {
+                    console.log(res);
+                    update();
+                },
+                function(err) {
+                    console.log(err);
+                }
+            );
         });
         var upBtnInner = $('<span />', {class:'glyphicon glyphicon-arrow-up', 'aria-hidden':true});
         upBtn.append(upBtnInner);
@@ -57,7 +82,31 @@
 
         var downBtn = $('<div />', {
             class:'btn btn-primary',
-            type:'button'
+            type:'button',
+            'data-index':index
+        });
+        downBtn.on('click', function() {
+            var product = products[$(this).data('index')];
+            var form = $('<form />');
+            var input = $('<input />', {'type':'hidden', 'name':'ordinal', 'value':product.ordinal + 15});
+            form.append(input);
+            var data = new FormData(form[0]);
+            $.ajax({
+                url: '/api/products/' + product.id,
+                type: 'PUT',
+                enctype: 'multipart/form-data',
+                data: data,
+                processData: false,
+                contentType: false
+            }).then(
+                function(res) {
+                    console.log(res);
+                    update();
+                },
+                function(err) {
+                    console.log(err);
+                }
+            );
         });
         var downBtnInner = $('<span />', {class:'glyphicon glyphicon-arrow-down', 'aria-hidden':true});
         downBtn.append(downBtnInner);
@@ -83,17 +132,20 @@
                 var row = $('<tr />');
                 row.append($('<td />', {text:'$' + price.price}));
                 row.append($('<td />', {text:price.type}));
-                row.append($('<td />', {text:dateFormat(startTime, 'H:MM m/d/yy')}));
-                row.append($('<td />', {text:dateFormat(endTime, 'H:MM m/d/yy')}));
+                row.append($('<td />', {text:dateFormat(startTime, 'mm/dd/yyyy h:MM TT')}));
+                row.append($('<td />', {text:dateFormat(endTime, 'mm/dd/yyyy h:MM TT')}));
 
                 var opts = $('<td />');
                 var optGroup = $('<div />', {class:'btn-group'});
 
+                var priceIndex = i;
                 var priceEditBtn = $('<div />', {
                     class:'btn btn-default btn-xs',
                     type:'button',
                     'data-toggle':'modal',
-                    'data-target':'editPrice'
+                    'data-target':'#priceModal',
+                    'data-index':index,
+                    'data-priceindex':priceIndex
                 });
                 var priceEditBtnInner = $('<span />', {class:'glyphicon glyphicon-pencil', 'aria-hidden':true});
                 priceEditBtn.append(priceEditBtnInner);
@@ -126,6 +178,7 @@
         }).attr({
             'data-toggle':'modal',
             'data-target':'#priceModal',
+            'data-index': index
         });
         var priceAddBtnInner = $('<span />', {class:'glyphicon glyphicon-plus', 'aria-hidden':true});
         priceAddBtn.append(priceAddBtnInner, ' Add Price');
@@ -182,6 +235,7 @@
             var type = button.data('type');
             if(type == 'product') {
                 modal.find('.modal-body #text').text('Are you sure you want to delete product?');
+                modal.find('.modal-body #confirm').off(); // remove all handlers
                 modal.find('.modal-body #confirm').on('click', function() {
                     var index = button.data('index');
                     var product = products[index];
@@ -202,6 +256,7 @@
             } else {
                 // price
                 modal.find('.modal-body #text').text('Are you sure you want to delete price?');
+                modal.find('.modal-body #confirm').off(); // remove all handlers
                 modal.find('.modal-body #confirm').on('click', function() {
                     var index = button.data('index');
                     var product = products[index];
@@ -221,6 +276,168 @@
                     );
                 });
             }
+        });
+
+        $('#productModal').on('show.bs.modal', function(event) {
+            var button = $(event.relatedTarget);
+            var modal = $(this);
+            var index = button.data('index');
+            var confirmBtn = modal.find('.modal-body #confirm');
+
+            confirmBtn.empty();
+
+            if(index >= 0) {
+                var product = products[index];
+                modal.find('#name').val(product.name);
+                modal.find('#img').val('');
+
+                var span = $('<span />', {class:'glyphicon glyphicon-ok-circle'});
+                confirmBtn.append(span, ' Update')
+
+                confirmBtn.off(); // clear old handlers
+                confirmBtn.on('click', function() {
+                    var form = modal.find('#productModalForm')[0];
+                    var data = new FormData(form);
+                    modal.modal('hide');
+                    $.ajax({
+                        url: '/api/products/' + products[index].id,
+                        type: 'PUT',
+                        enctype: 'multipart/form-data',
+                        data: data,
+                        processData: false,
+                        contentType: false
+                    }).then(
+                        function(res) {
+                            console.log(res);
+                            update();
+                        },
+                        function(err) {
+                            console.log(err);
+                        }
+                    );
+                });
+            } else {
+                modal.find('#name').val('');
+                modal.find('#img').val('');
+
+                var span = $('<span />', {class:'glyphicon glyphicon-ok-circle'});
+                confirmBtn.append(span, ' Add')
+
+                confirmBtn.off(); // clear old handlers
+                confirmBtn.on('click', function() {
+                    var form = modal.find('#productModalForm')[0];
+                    var data = new FormData(form);
+                    modal.modal('hide');
+                    $.ajax({
+                        url: '/api/products/',
+                        type: 'POST',
+                        enctype: 'multipart/form-data',
+                        data: data,
+                        processData: false,
+                        contentType: false
+                    }).then(
+                        function(res) {
+                            console.log(res);
+                            update();
+                        },
+                        function(err) {
+                            console.log(err);
+                        }
+                    );
+                });
+            }
+        });
+
+        $('#priceModal').on('show.bs.modal', function(event) {
+            var button = $(event.relatedTarget);
+            var modal = $(this);
+            var index = button.data('index');
+            var priceIndex = button.data('priceindex');
+
+            var confirmBtn = modal.find('.modal-body #confirm');
+            confirmBtn.empty();
+
+            if(index >= 0 && priceIndex >= 0) {
+                var price = products[index].prices[priceIndex];
+                modal.find('#price').val(price.price);
+                modal.find('#pricetype').val(price.type);
+                modal.find('#priceStartTimeInput').val(dateFormat(price.startTime * 1000, 'mm/dd/yyyy h:MM TT'))
+                modal.find('#priceEndTimeInput').val(dateFormat(price.endTime * 1000, 'mm/dd/yyyy h:MM TT'))
+
+                var span = $('<span />', {class:'glyphicon glyphicon-ok-circle'});
+                confirmBtn.append(span, ' Update')
+
+                confirmBtn.off(); // remove all handlers
+                confirmBtn.on('click', function() {
+                    var startTime = modal.find('#priceStartTimeInput').val();
+                    startTime = Math.floor((new Date(startTime)).getTime() / 1000);
+                    modal.find('#priceStartTimeInput').val(startTime);
+
+                    var endTime = modal.find('#priceEndTimeInput').val();
+                    endTime = Math.floor((new Date(endTime)).getTime() / 1000);
+                    modal.find('#priceEndTimeInput').val(endTime);
+                    
+                    var form = modal.find('#priceModalForm')[0];
+                    var data = new FormData(form);
+                    modal.modal('hide');
+                    $.ajax({
+                        url: '/api/products/' + products[index].id + '/prices/' + price.id,
+                        type: 'PUT',
+                        enctype: 'multipart/form-data',
+                        data: data,
+                        processData: false,
+                        contentType: false
+                    }).then(
+                        function(res) {
+                            console.log(res);
+                            update();
+                        },
+                        function(err) {
+                            console.log(err);
+                        }
+                    );
+                });
+            } else {
+                modal.find('#price').val('');
+                modal.find('#pricetype').val('');
+                modal.find('#priceStartTimeInput').val('');
+                modal.find('#priceEndTimeInput').val('');
+
+                var span = $('<span />', {class:'glyphicon glyphicon-ok-circle'});
+                confirmBtn.append(span, ' Add')
+
+                confirmBtn.off(); // remove all handlers
+                confirmBtn.on('click', function() {
+                    var startTime = modal.find('#priceStartTimeInput').val();
+                    startTime = Math.floor((new Date(startTime)).getTime() / 1000);
+                    modal.find('#priceStartTimeInput').val(startTime);
+
+                    var endTime = modal.find('#priceEndTimeInput').val();
+                    endTime = Math.floor((new Date(endTime)).getTime() / 1000);
+                    modal.find('#priceEndTimeInput').val(endTime);
+                    
+                    var form = modal.find('#priceModalForm')[0];
+                    var data = new FormData(form);
+                    modal.modal('hide');
+                    $.ajax({
+                        url: '/api/products/' + products[index].id + '/prices/',
+                        type: 'post',
+                        enctype: 'multipart/form-data',
+                        data: data,
+                        processData: false,
+                        contentType: false
+                    }).then(
+                        function(res) {
+                            console.log(res);
+                            update();
+                        },
+                        function(err) {
+                            console.log(err);
+                        }
+                    )
+                });
+            }
+
         });
 
         //setInterval(update, 10000);

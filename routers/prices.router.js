@@ -205,6 +205,7 @@ module.exports.PricesRouter = class PricesRouter extends abstractRouter.Abstract
                             req.busboy.on(
                                 'field',
                                 function(fieldname, val, fieldnameTruncated, valTruncated) {
+                                    console.log(fieldname, val);
                                     switch(fieldname) {
                                         case 'price':
                                             price = val;
