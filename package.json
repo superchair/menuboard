@@ -2,7 +2,8 @@
   "name": "MenuboardAPI",
   "version": "0.0.1",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "mocha --recursive ./test"
   },
   "dependencies": {
     "MD5": "~1.2.1",
@@ -10,5 +11,10 @@
     "connect-busboy": "0.0.2",
     "express": "~4.12.2",
     "mysql": "~2.5.5"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "chai-http": "^3.0.0",
+    "zombie": "^5.0.5"
   }
 }

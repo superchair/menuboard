@@ -1,10 +1,9 @@
 'use strict';
 
 var express = require('express');
-var mysql   = require('mysql');
-var bodyParser  = require('body-parser');
+var mysql = require('mysql');
+var bodyParser = require('body-parser');
 var busboy = require('connect-busboy');
-var app  = express();
 
 var routers = {
     products: require('./routers/products.router.js'),
@@ -67,3 +66,5 @@ REST.prototype.stop = function(err) {
 }
 
 new REST();
+
+var app = module.exports = express();
