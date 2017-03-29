@@ -32,9 +32,9 @@
 
                             for(var j = 0; j < product.prices.length; j++) {
                                 var priceObj = product.prices[j];
-                                var h3 = $('<h3 />');
+                                var h3 = $('<h3 />', {class:'text-center'});
                                 var priceSpan = $('<span />', {class:'label label-default center-block'});
-                                if(priceObj.type === "Combo") {
+                                if(priceObj.type.toLowerCase().indexOf('combo') !== -1 || priceObj.type.toLowerCase().indexOf('special') !== -1) {
                                     priceSpan.addClass('combo');
                                 }
                                 var typeDiv = $('<div />', {class:'type', text:priceObj.type});

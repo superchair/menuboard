@@ -1,5 +1,4 @@
 .product {
-    min-width: 320px;
 }
 
 .product .panel.panel-warning {
@@ -14,7 +13,7 @@
 .panel-warning>.panel-heading {
     border-top-color: #faf2cc;
     background-image: linear-gradient(to bottom, #faf2cc 100%, #fcf8e3 0);
-    font-size: 1.7em;
+    font-size: 30px;
     font-weight: bold;
 }
 
@@ -22,7 +21,8 @@
     font-size: 24px;
     background-color: transparent;
     color: #720f14;
-    max-width: 115px;
+    min-width: 115px;
+    display: inline-block;
 }
 
 .label.combo {
@@ -44,7 +44,7 @@
     border-color: white;
     background-color: black;
     color: white;
-    font-size: 1.2em;
+    font-size: 20px;
     font-weight: bold;
     text-align: center;
     vertical-align: middle;
