@@ -30,7 +30,21 @@ REST.prototype.connectMysql = function(port) {
     });
     pool.getConnection(function(err,connection){
         if(err) {
-            self.connectMysql(3306);
+            pool = mysql.createPool({
+                connectionLimit : 100,
+                host     : 'db',
+                user     : 'root',
+                password : 'edomtluda11',
+                database : 'menuboard',
+                debug    :  false
+            });
+            pool.getConnection(function(err, connection) {
+                if(err) {
+                    self.stop();
+                } else {
+                    self.configureExpress(connection);
+                }
+            });
         } else {
             self.configureExpress(connection);
         }
