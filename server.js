@@ -15,7 +15,7 @@ function REST(){
     self.connectMysql(3310);
 };
 
-REST.prototype.port = 3000;
+REST.prototype.port = 9900;
 
 REST.prototype.connectMysql = function(port) {
     var self = this;
