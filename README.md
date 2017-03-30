@@ -1,3 +1,3 @@
 # MenuBoard
 
-Menuboard example
+Menuboard example project for Cineplex Digital Media
