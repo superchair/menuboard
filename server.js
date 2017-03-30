@@ -12,17 +12,17 @@ var routers = {
 
 function REST(){
     var self = this;
-    self.connectMysql();
+    self.connectMysql(3310);
 };
 
 REST.prototype.port = 3000;
 
-REST.prototype.connectMysql = function() {
+REST.prototype.connectMysql = function(port) {
     var self = this;
     var pool = mysql.createPool({
         connectionLimit : 100,
         host     : 'localhost',
-        port     : 3310,
+        port     : port,
         user     : 'root',
         password : 'edomtluda11',
         database : 'menuboard',
@@ -30,7 +30,7 @@ REST.prototype.connectMysql = function() {
     });
     pool.getConnection(function(err,connection){
         if(err) {
-            self.stop(err);
+            self.connectMysql(3306);
         } else {
             self.configureExpress(connection);
         }
