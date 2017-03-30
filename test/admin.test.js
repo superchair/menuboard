@@ -55,4 +55,22 @@ describe('User Page Tests', function() {
         chai.assert(productList, 'Product list div does not exist');
         productList.children.length.should.be.above(0);
     });
+
+    it('should show add product modal when "Add New Product" is pressed', function(done) {
+        var document = this.browser.document;
+        this.browser.pressButton('Add New Product',
+            function(res) {
+                try {
+                    var modalBackdrop = document.getElementsByClassName('modal-backdrop');
+                    var modal = document.getElementById('productModal');
+                    modalBackdrop.length.should.be.above(0);
+                    modal.className.should.be.equal('modal fade in');
+                    done();
+                }
+                catch(e) {
+                    done(e)
+                }
+            }
+        );
+    })
 });
